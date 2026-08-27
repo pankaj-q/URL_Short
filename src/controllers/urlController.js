@@ -5,11 +5,23 @@ import ApiError from '../utils/ApiError.js'
 import ApiResponse from '../utils/ApiResponse.js'
 
 const createShortUrl = asyncHandler(async (req, res) => {
-    const { originalUrl } = req.body;
+    const { originalUrl,customAlias } = req.body;
     if(!originalUrl) {
         throw new ApiError(400, "original url are required");
     }
-    const shortCode = nanoid(6);
+
+    let shortCode;
+    if (customAlias) {
+      const existingAlias = await URL.findOne({
+        shortCode: customAlias,
+      });
+      if (existingAlias) {
+        throw new ApiError(409, "Custom Alias already exist");
+      }
+      shortCode = customAlias;
+    } else {
+      shortCode = nanoid(6);
+    }
     const url = await URL.create({
         originalUrl, 
         shortCode
