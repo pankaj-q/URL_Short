@@ -4,47 +4,95 @@ import asyncHandler from '../utils/asyncHandler.js'
 import ApiError from '../utils/ApiError.js'
 import ApiResponse from '../utils/ApiResponse.js'
 
-const createShortUrl = asyncHandler(async (req, res) => {
-    const { originalUrl, customAlias, expiresIn } = req.body;
-    if(!originalUrl) {
-        throw new ApiError(400, "original url are required");
+
+const createShortUrl = asyncHandler(async (req ,res) => {
+    const {originalUrl , costumAlias, exipresIn} = req.body;
+    if(!originalUrl){
+        throw new ApiError(400, "orignalUrl are required")
     }
 
     let expiresAt = null;
-
     if(expiresIn){
-        const match = expiresIn.match(/^(\d+)([mhd])$/);
+        const match =  expiresIn.match(/^(\d+)([mhd])$/);
         if(!match){
-            throw new ApiError(400, "Invalid expiration formate. Use like 1h, 1d, 7d")
+            throw new ApiError(409, "invalid expiration formate");
         }
-    const value = Number(match[1]);
-    const unit = match[2];
-    const millisecond = unit === "m" ?  value * 60 * 1000 : unit === "h" ? value *60*60*1000 :value * 24 *60 *60 *1000;
-    expiresAt = new Date(Date.now() + millisecond);
+
+        const value = Number(match[1]);
+        const unit = match[2];
+        const millisecond =
+          unit === "m"
+            ? value * 60 * 1000
+            : unit === "h"
+              ? value * 60 * 60 * 1000
+              : value * 24 * 60 * 60 * 1000;
+              
+       expiresAt = new Date(Date.now()+ millisecond);
     }
 
     let shortCode;
-    if (customAlias) {
-      const existingAlias = await URL.findOne({
-        shortCode: customAlias,
-      });
-      if (existingAlias) {
-        throw new ApiError(409, "Custom Alias already exist");
-      }
-      shortCode = customAlias;
-    } else {
-      shortCode = nanoid(6);
+    if(costumAlias){
+        const existingAlias = await URL.findOne({
+            shorCode: costumAlias,
+        })
+        if(existingAlias){
+            throw new ApiError(409, "costum alias already exist");
+        }
+        shortCode = costumAlias;
+    }else{
+        shortCode = nanoid(6);
     }
-    const url = await URL.create({
-        originalUrl, 
-        shortCode,
-        expiresAt
+    const createUrl = await URL.create({
+       originalUrl,
+       shortCode,
+       expiresAt
     })
-    return res.status(201).json(
-        new ApiResponse(201, url, "URL shortened successfully")
-    );
+    res.status(201).json(
+        new ApiResponse(201, url, "shorten url created")
+    )
+})
 
-});
+// const createShortUrl = asyncHandler(async (req, res) => {
+//     const { originalUrl, customAlias, expiresIn } = req.body;
+//     if(!originalUrl) {
+//         throw new ApiError(400, "original url are required");
+//     }
+
+//     let expiresAt = null;
+
+//     if(expiresIn){
+//         const match = expiresIn.match(/^(\d+)([mhd])$/);
+//         if(!match){
+//             throw new ApiError(400, "Invalid expiration formate. Use like 1h, 1d, 7d")
+//         }
+//     const value = Number(match[1]);
+//     const unit = match[2];
+//     const millisecond = unit === "m" ?  value * 60 * 1000 : unit === "h" ? value *60*60*1000 :value * 24 *60 *60 *1000;
+//     expiresAt = new Date(Date.now() + millisecond);
+//     }
+
+//     let shortCode;
+//     if (customAlias) {
+//       const existingAlias = await URL.findOne({
+//         shortCode: customAlias,
+//       });
+//       if (existingAlias) {
+//         throw new ApiError(409, "Custom Alias already exist");
+//       }
+//       shortCode = customAlias;
+//     } else {
+//       shortCode = nanoid(6);
+//     }
+//     const url = await URL.create({
+//         originalUrl, 
+//         shortCode,
+//         expiresAt
+//     })
+//     return res.status(201).json(
+//         new ApiResponse(201, url, "URL shortened successfully")
+//     );
+
+// });
 
 const getShortenUrl = asyncHandler(async(req,res) => {
     const {shortCode} = req.params;
