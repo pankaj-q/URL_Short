@@ -59,13 +59,18 @@ const createShortUrl = asyncHandler(async (req ,res) => {
         throw new ApiError(404, "Url not found");
       }
       res.status(200).json(
-        new ApiResponse(200, {
+        new ApiResponse(
+          200,
+          {
             shortCode: url.shortCode,
-            origialUrl : url.originalUrl,
+            originalUrl: url.originalUrl,
             clicks: url.clicks,
             createdAt: url.createdAt,
-            expiresAt : url.expiresAt
-        }, "URL analytics fetch bro !")
+            expiresAt: url.expiresAt,
+            clickHistory: url.clickHistory
+          },
+          "URL analytics fetch bro !",
+        ),
       );
   });
 
@@ -121,6 +126,12 @@ const getShortenUrl = asyncHandler(async(req,res) => {
         throw new ApiError(410, "URL has expired");
     }
     url.clicks += 1;
+    url.clickHistory.push({
+        clickedAt : new Date(),
+        ip : req.ip,
+        userAgent : req.get("User-Agent"),
+        referrer: req.get("Referrer")
+    });
     await url.save();
 
    return res.redirect(url.originalUrl);
