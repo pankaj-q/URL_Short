@@ -27,13 +27,13 @@ const createShortUrl = asyncHandler(async (req ,res) => {
               ? value * 60 * 60 * 1000
               : value * 24 * 60 * 60 * 1000;
               
-       expiresAt = new Date(Date.now()+ millisecond);
+       expiresIn = new Date(Date.now()+ millisecond);
     }
 
     let shortCode;
     if (customAlias) {
       const existingAlias = await URL.findOne({
-        shorCode: customAlias,
+        shortCode: customAlias,
       });
       if (existingAlias) {
         throw new ApiError(409, "costum alias already exist");
@@ -45,12 +45,29 @@ const createShortUrl = asyncHandler(async (req ,res) => {
     const createUrl = await URL.create({
        originalUrl,
        shortCode,
-       expiresAt
+       expiresIn
     })
     res
       .status(201)
       .json(new ApiResponse(201, createUrl, "shorten url created"));
 })
+
+  const getAnalytics = asyncHandler (async(req, res) => {
+      const {shortCode} = req.params;
+      const url = await URL.findOne({shortCode});
+      if(!url){
+        throw new ApiError(404, "Url not found");
+      }
+      res.status(200).json(
+        new ApiResponse(200, {
+            shortCode: url.shortCode,
+            origialUrl : url.originalUrl,
+            clicks: url.clicks,
+            createdAt: url.createdAt,
+            expiresAt : url.expiresAt
+        }, "URL analytics fetch bro !")
+      );
+  });
 
 // const createShortUrl = asyncHandler(async (req, res) => {
 //     const { originalUrl, customAlias, expiresIn } = req.body;
@@ -109,4 +126,4 @@ const getShortenUrl = asyncHandler(async(req,res) => {
    return res.redirect(url.originalUrl);
 })
 
-export { createShortUrl , getShortenUrl};
+export { createShortUrl, getShortenUrl, getAnalytics };
