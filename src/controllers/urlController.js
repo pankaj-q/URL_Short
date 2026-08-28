@@ -6,12 +6,12 @@ import ApiResponse from '../utils/ApiResponse.js'
 
 
 const createShortUrl = asyncHandler(async (req ,res) => {
-    const {originalUrl , costumAlias, exipresIn} = req.body;
+    const { originalUrl, customAlias, exipresIn } = req.body;
     if(!originalUrl){
         throw new ApiError(400, "orignalUrl are required")
     }
 
-    let expiresAt = null;
+    let expiresIn = null;
     if(expiresIn){
         const match =  expiresIn.match(/^(\d+)([mhd])$/);
         if(!match){
@@ -31,25 +31,25 @@ const createShortUrl = asyncHandler(async (req ,res) => {
     }
 
     let shortCode;
-    if(costumAlias){
-        const existingAlias = await URL.findOne({
-            shorCode: costumAlias,
-        })
-        if(existingAlias){
-            throw new ApiError(409, "costum alias already exist");
-        }
-        shortCode = costumAlias;
-    }else{
-        shortCode = nanoid(6);
+    if (customAlias) {
+      const existingAlias = await URL.findOne({
+        shorCode: customAlias,
+      });
+      if (existingAlias) {
+        throw new ApiError(409, "costum alias already exist");
+      }
+      shortCode = customAlias;
+    } else {
+      shortCode = nanoid(6);
     }
     const createUrl = await URL.create({
        originalUrl,
        shortCode,
        expiresAt
     })
-    res.status(201).json(
-        new ApiResponse(201, url, "shorten url created")
-    )
+    res
+      .status(201)
+      .json(new ApiResponse(201, createUrl, "shorten url created"));
 })
 
 // const createShortUrl = asyncHandler(async (req, res) => {
