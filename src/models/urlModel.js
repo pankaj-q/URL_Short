@@ -21,7 +21,7 @@ const urlSchema = new mongoose.Schema( {
     },
     clickHistory : [
       {
-        clikedAt: {
+        clickedAt: {
           type: Date,
           defualt: Date.now
         },

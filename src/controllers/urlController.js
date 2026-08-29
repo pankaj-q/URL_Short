@@ -47,6 +47,7 @@ const createShortUrl = asyncHandler(async (req ,res) => {
        shortCode,
        expiresIn
     })
+    console.log("CREATED URL", createUrl);
     res
       .status(201)
       .json(new ApiResponse(201, createUrl, "shorten url created"));
@@ -118,7 +119,9 @@ const createShortUrl = asyncHandler(async (req ,res) => {
 
 const getShortenUrl = asyncHandler(async(req,res) => {
     const {shortCode} = req.params;
+    console.log("ShortCode", shortCode);
     const url = await URL.findOne({shortCode})
+    console.log("FOUND URL", url);
     if (!url) {
       throw new ApiError(404, "URL not found");
     }
