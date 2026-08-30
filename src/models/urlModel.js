@@ -18,25 +18,7 @@ const urlSchema = new mongoose.Schema( {
     expiresAt : {
       type: Date,
       default: null
-    },
-    clickHistory : [
-      {
-        clickedAt: {
-          type: Date,
-          defualt: Date.now
-        },
-        ip : {
-          type: String,
-        },
-        userAgent :{
-          type: String
-        },
-        referrer:{
-          type: String
-        }
-      }
-    ]
-
+  },
 },
 
   { timestamps: true },

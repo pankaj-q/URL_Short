@@ -3,6 +3,8 @@ import {nanoid} from "nanoid";
 import asyncHandler from '../utils/asyncHandler.js'
 import ApiError from '../utils/ApiError.js'
 import ApiResponse from '../utils/ApiResponse.js'
+import Click from '../models/clickModel.js';
+import {UAParser} from 'ua-parser-js';
 
 
 const createShortUrl = asyncHandler(async (req ,res) => {
@@ -129,12 +131,27 @@ const getShortenUrl = asyncHandler(async(req,res) => {
         throw new ApiError(410, "URL has expired");
     }
     url.clicks += 1;
-    url.clickHistory.push({
-        clickedAt : new Date(),
-        ip : req.ip,
-        userAgent : req.get("User-Agent"),
-        referrer: req.get("Referrer")
-    });
+    const parser = new UAParser(req.get("User-Agent"));
+    const browser = parser.getBrowser().type || "unknown";
+    const os = parser.getOS().name || "unknown";
+    const device = parser.getDevice().name || "chrome";
+   
+    await Click.create({
+      urlId: url._id,
+      device,
+      browser,
+      os,
+      country: "unknown",
+      referrer:req.get("Referrer"),
+      ip: req.ip,
+      userAgent: req.get("User-Agent")
+    })
+    // url.clickHistory.push({
+    //     clickedAt : new Date(),
+    //     ip : req.ip,
+    //     userAgent : req.get("User-Agent"),
+    //     referrer: req.get("Referrer")
+    // });
     await url.save();
 
    return res.redirect(url.originalUrl);
